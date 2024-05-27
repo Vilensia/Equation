@@ -1,0 +1,55 @@
+name: .NET Core Desktop
+
+on:
+  # Триггеры для запуска workflow
+  push:
+    branches: [ "main" ]  # Запуск при пуше в ветку main
+  pull_request:
+    branches: [ "main" ]  # Запуск при создании pull request в ветку main
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        configuration: [Debug, Release]  # Матрица стратегий для сборки в конфигурациях Debug и Release
+
+    runs-on: windows-latest  # Использование последней версии Windows для сборки
+
+    env:
+      Solution_Name: Equation.sln  # Имя решения, которое нужно заменить на фактическое имя, например, Equation.sln
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Извлекаем весь git history для точности сборки
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x  # Установка .NET Core версии 8.0.x
+
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2  # Установка MSBuild для сборки проектов
+
+    - name: Restore dependencies
+      run: dotnet restore $env:Solution_Name  # Восстановление зависимостей для всего решения
+
+    - name: Build
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}  # Сборка проекта в указанных конфигурациях (Debug и Release)
+
+    - name: Execute unit tests
+      run: |
+        if (Test-Path -Path "Equation/Tests.cs") {  # Проверка наличия файла Tests.cs
+          dotnet test --filter FullyQualifiedName~Equation.Tests  # Выполнение тестов, если файл существует
+        } else {
+          Write-Host "Tests.cs file not found"  # Сообщение, если файл не найден
+        }
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: BuildOutput  # Имя для артефактов сборки
+        path: |
+          **/bin/${{ matrix.configuration }}/  # Путь к артефактам сборки
+          !**/obj/**  # Исключение папок obj из артефактов
