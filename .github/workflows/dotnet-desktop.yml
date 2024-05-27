@@ -1,62 +1,60 @@
 name: .NET Core Desktop
 
 on:
-  # Триггеры для запуска workflow
   push:
-    branches: [ "main" ]  # Запуск при пуше в ветку main
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]  # Запуск при создании pull request в ветку main
+    branches: [ "main" ]
 
 jobs:
   build:
     strategy:
       matrix:
-        configuration: [Debug, Release]  # Матрица стратегий для сборки в конфигурациях Debug и Release
+        configuration: [Debug, Release]
 
-    runs-on: windows-latest  # Использование последней версии Windows для сборки
+    runs-on: windows-latest
 
     env:
-      Solution_Name: Equation.sln  # Имя решения, которое нужно заменить на фактическое имя, например, Equation.sln
+      Solution_Name: Equation.sln  # Заменить на имя вашего решения
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0  # Извлекаем весь git history для точности сборки
+        fetch-depth: 0
 
     - name: Install .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x  # Установка .NET Core версии 8.0.x
+        dotnet-version: 8.0.x
 
     - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v2  # Установка MSBuild для сборки проектов
+      uses: microsoft/setup-msbuild@v2
 
     - name: Restore dependencies
-      run: dotnet restore $env:Solution_Name  # Восстановление зависимостей для всего решения
+      run: dotnet restore $env:Solution_Name
 
     - name: Build
-      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}  # Сборка проекта в указанных конфигурациях (Debug и Release)
+      run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
 
     - name: Execute unit tests
       run: |
-        if (Test-Path -Path "Equation/Tests.cs") {  # Проверка наличия файла Tests.cs
-          dotnet test --filter FullyQualifiedName~Equation.Tests  # Выполнение тестов, если файл существует
+        if (Test-Path -Path "Equation/Tests.cs") {
+          dotnet test $env:Solution_Name --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov
         } else {
-          Write-Host "Tests.cs file not found"  # Сообщение, если файл не найден
+          Write-Host "Tests.cs file not found"
         }
 
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./path/to/coverage.lcov
-        repo-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        path-to-lcov: ./Equation/coverage/lcov.info
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: BuildOutput  # Имя для артефактов сборки
+        name: BuildOutput
         path: |
-          **/bin/${{ matrix.configuration }}/  # Путь к артефактам сборки
-          !**/obj/**  # Исключение папок obj из артефактов
+          **/bin/${{ matrix.configuration }}/
+          !**/obj/**
