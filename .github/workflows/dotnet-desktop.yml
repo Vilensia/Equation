@@ -43,10 +43,13 @@ jobs:
     - name: Execute unit tests
       run: |
         if (Test-Path -Path "Equation/Tests.cs") {
-          dotnet test Equation/Equation.csproj --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=../coverage/
+          dotnet test Equation/Equation.csproj --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/
         } else {
           Write-Host "Tests.cs file not found"
         }
+
+    - name: List all files and directories
+      run: ls -R
 
     - name: List coverage directory
       run: ls ./coverage
