@@ -43,7 +43,7 @@ jobs:
     - name: Execute unit tests
       run: |
         if (Test-Path -Path "Equation/Tests.cs") {
-          dotnet test Equation/Equation.csproj --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/
+          dotnet test Equation/Equation.csproj --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/coverage.info
         } else {
           Write-Host "Tests.cs file not found"
         }
@@ -56,17 +56,17 @@ jobs:
 
     - name: Display contents of coverage file
       run: |
-        if (Test-Path -Path "./coverage/lcov.info") {
-          Get-Content ./coverage/lcov.info
+        if (Test-Path -Path "./coverage/coverage.info") {
+          Get-Content ./coverage/coverage.info
         } else {
-          Write-Host "coverage/lcov.info file not found"
+          Write-Host "coverage/coverage.info file not found"
         }
 
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./coverage/lcov.info
+        path-to-lcov: ./coverage/coverage.info
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
