@@ -42,8 +42,9 @@ jobs:
         if (Test-Path -Path "Equation/Tests.cs") {
           dotnet test $env:Solution_Name --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/
         } else {
-          Write-Host "Tests.cs file not found"
-        
+          Write-Host "Tests.cs file not found"}
+      
+      
     - name: List coverage directory
       run: ls -la ./coverage
 
