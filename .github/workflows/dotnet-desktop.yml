@@ -37,16 +37,19 @@ jobs:
     - name: Build
       run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
 
+    - name: Create coverage directory
+      run: mkdir -p ./coverage
+
     - name: Execute unit tests
       run: |
         if (Test-Path -Path "Equation/Tests.cs") {
-          dotnet test $env:Solution_Name --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=./coverage/
+          dotnet test Equation/Equation.csproj --configuration ${{ matrix.configuration }} --collect:"XPlat Code Coverage" /p:CoverletOutputFormat=lcov /p:CoverletOutput=../coverage/
         } else {
-          Write-Host "Tests.cs file not found"}
-      
-      
+          Write-Host "Tests.cs file not found"
+        }
+
     - name: List coverage directory
-      run: ls ./coverage
+      run: ls -la ./coverage
 
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
