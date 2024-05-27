@@ -38,7 +38,7 @@ jobs:
       run: dotnet build $env:Solution_Name --configuration ${{ matrix.configuration }}
 
     - name: Create coverage directory
-      run: mkdir -p ./coverage
+      run: New-Item -ItemType Directory -Force -Path ./coverage
 
     - name: Execute unit tests
       run: |
@@ -49,10 +49,18 @@ jobs:
         }
 
     - name: List all files and directories
-      run: ls -R
+      run: Get-ChildItem -Recurse
 
     - name: List coverage directory
-      run: ls ./coverage
+      run: Get-ChildItem ./coverage
+
+    - name: Display contents of coverage file
+      run: |
+        if (Test-Path -Path "./coverage/lcov.info") {
+          Get-Content ./coverage/lcov.info
+        } else {
+          Write-Host "coverage/lcov.info file not found"
+        }
 
     - name: Upload coverage to Coveralls
       uses: coverallsapp/github-action@v2
